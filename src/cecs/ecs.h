@@ -6,12 +6,12 @@ Every system holds a list of entities it's associated with, an ID,
 
 */
 
-#ifndef ECS_H
+#ifndef ECS_ECS_H
 #define ECS_H
 
 #include <stdint.h>
 
-#include "dyve.h"
+#include <dyve.h>
 
 
 
