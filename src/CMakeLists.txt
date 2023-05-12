@@ -1,7 +1,6 @@
-project(cecs)
+include_directories(${CMAKE_SOURCE_DIR})
 
-set(sources
+add_executable(cecs
     ecs.c
+    main.c
 )
-
-add_library(cecs ${sources})

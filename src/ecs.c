@@ -9,24 +9,23 @@ ECS_Container *ECS_CreateECS(void)
 {
     ECS_Container *outContainer = malloc(sizeof(ECS_Container));
 
-    DYVE_Init(outContainer->components, 8);
-    DYVE_Init(outContainer->entities, ECS_ENTITYSTARTCOUNT);
-    DYVE_Init(outContainer->systems, 4);
+    DYVE_ECS_ComponentContainer_init(&outContainer->components, 8);
+    DYVE_ECS_Entity_t_init(&outContainer->entities, ECS_ENTITYSTARTCOUNT);
+    DYVE_ECS_System_init(&outContainer->systems, 4);
 
     outContainer->nextEntityID = 0;
 }
 
-
 void ECS_Destroy(ECS_Container *ecs)
 {
     // free all systems
-    for (uint32_t i = 0; i < ecs->systems.size; i++)
+    for (uint32_t i = 0; i < ecs->systems.length; i++)
     {
-        DYVE_Free(ecs->systems.data[i].entities);
+        DYVE_ECS_(&ecs->systems.data[i].entities);
     }
     
     // free all components
-    for (uint32_t i = 0; i < ecs->components.size; i++)
+    for (uint32_t i = 0; i < ecs->components.length; i++)
     {
         ecs->components.data[i].destroy(ecs->components.data[i].components);
         free(ecs->components.data[i].components);

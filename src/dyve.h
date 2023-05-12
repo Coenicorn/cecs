@@ -70,90 +70,91 @@
 #define DYVE_MAXSIZEDIFFERENCE 16
 #endif
 
-#define DYVE_NEWTYPE(_TYPE) struct { uint32_t size, bufSize; _TYPE *data; }
-
-/* Initializes (arr). Needs be called for every DYVE */
-#define DYVE_Init(arr, _SIZE)\
+#define DYVE_NEWTYPE(_TYPE, _NAME)\
+\
+typedef struct _NAME {\
+    _TYPE *data;\
+    uint32_t length, buffSize;\
+} _NAME;\
+\
+static inline void DYVE_##_TYPE##_init(_NAME *arr, uint32_t len)\
 {\
-    (arr).size = 0;\
-    (arr).bufSize = _SIZE;\
-    (arr).data = malloc(sizeof((*(arr).data)) * _SIZE);\
+    arr->buffSize = len;\
+    arr->data = (_TYPE*)malloc(sizeof(_TYPE) * len);\
+    arr->length = 0;\
 }\
-
-/* Pushes val to head of (arr) */
-#define DYVE_Push(arr, val)\
+\
+static inline void DYVE_##_TYPE##_push(_NAME *arr, _TYPE val)\
 {\
-    if ((arr).size < (arr).bufSize)\
+    if (arr->length >= arr->buffSize)\
     {\
-        (arr).data[(arr).size++] = val;\
-    }\
-    else\
-    {\
+        uint32_t newLen = arr->buffSize + DYVE_MAXSIZEDIFFERENCE;\
 \
-        uint32_t DYVE_LOCAL_newLen = (arr).bufSize + DYVE_MAXSIZEDIFFERENCE;\
+        _TYPE *newData = (_TYPE*)realloc(arr->data, sizeof(_TYPE) * newLen);\
 \
-        void *DYVE_LOCAL_newData = realloc((arr).data, sizeof(*((arr).data)) * DYVE_LOCAL_newLen);\
-\
-        if (DYVE_LOCAL_newData == NULL)\
+        if (newData == NULL)\
         {\
-            printf("DYVE: Failed to allocate memory");\
+            printf("DVVE: Failed to allocate memory\n");\
+        \
+            exit(1);\
         }\
 \
-        (arr).bufSize = DYVE_LOCAL_newLen;\
-        (arr).data = DYVE_LOCAL_newData;\
-\
-        (arr).data[(arr).size++] = val;\
-\
+        arr->buffSize = newLen;\
+        arr->data = newData;\
     }\
-}
-
-/* Removes (arr)[index] from (arr) */
-#define DYVE_Remove(arr, index)\
+\
+    arr->data[arr->length++] = val;\
+}\
+\
+static inline _TYPE DYVE_##_TYPE##_pop(_NAME *arr, uint32_t index)\
 {\
-    if (index > (arr).size || index < 0)\
+    if (index >= arr->length || index < 0)\
     {\
-        printf("DYVE: Index outside (arr)ay bounds\n");\
+        printf("DYVE: Index out of range");\
+\
+        exit(1);\
     }\
-    else\
+\
+    for (uint32_t i = index; i < arr->length-2; i++)\
     {\
+        arr->data[i] = arr->data[i+1];\
+    }\
 \
-        for (uint32_t DYVE_LOCAL_i = index; DYVE_LOCAL_i < (arr).size-1; DYVE_LOCAL_i++)\
+    arr->length--;\
+\
+    if ((arr->buffSize - arr->length) > DYVE_MAXSIZEDIFFERENCE)\
+    {\
+        uint32_t newLen = arr->buffSize - DYVE_MAXSIZEDIFFERENCE;\
+\
+        _TYPE *newData = (_TYPE*)realloc(arr->data, sizeof(_TYPE) * newLen);\
+\
+        if (newData == NULL)\
         {\
-            (arr).data[DYVE_LOCAL_i] = (arr).data[DYVE_LOCAL_i+1];\
+            printf("DVVE: Failed to allocate memory\n");\
+        \
+            exit(1);\
         }\
 \
-        (arr).size--;\
-\
-        if (((arr).bufSize - (arr).size) > DYVE_MAXSIZEDIFFERENCE)\
-        {\
-            uint32_t DYVE_LOCAL_newSize = (arr).bufSize - DYVE_MAXSIZEDIFFERENCE;\
-\
-            void *DYVE_LOCAL_newData = realloc((arr).data, sizeof(*((arr).data)) * DYVE_LOCAL_newSize);\
-\
-            if (DYVE_LOCAL_newData == NULL)\
-            {\
-                printf("DYVE: Failed to allocate memory");\
-            }\
-            else\
-            {\
-                (arr).data = DYVE_LOCAL_newData;\
-                (arr).bufSize = DYVE_LOCAL_newSize;\
-            }\
-        }\
+        arr->data = newData;\
+        arr->buffSize = newLen;\
     }\
 }\
-
-#define DYVE_Free(arr)\
+\
+static inline void DYVE_##_TYPE##_free(_NAME *arr)\
 {\
-    free((arr).data);\
+    free(arr->data);\
 }\
 
 #define DYVE_HASBASICS
 #ifdef DYVE_HASBASICS
-typedef DYVE_NEWTYPE(int) DYVE_int_t;
-typedef DYVE_NEWTYPE(float) DYVE_float_t;
-typedef DYVE_NEWTYPE(char) DYVE_char_t;
-typedef DYVE_NEWTYPE(double) DYVE_double_t;
+
+DYVE_NEWTYPE(int, DYVE_int_t)
+DYVE_NEWTYPE(char, DYVE_char_t)
+DYVE_NEWTYPE(float, DYVE_float_t)
+DYVE_NEWTYPE(double, DYVE_double_t)
+DYVE_NEWTYPE(long, DYVE_long_t)
+DYVE_NEWTYPE(short, DYVE_short_t)
+
 #endif
 
 #endif

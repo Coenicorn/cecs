@@ -9,70 +9,12 @@
 #include "ecs.h"
 #include "log.h"
 
-#define CONC_(A, B) A##B
-#define CONC(A, B) CONC_(A, B)
-
-#define ECS_COMPONENT_INITIALIZE(_STRUCTNAME, _ID) \
-typedef DYVE_NEWTYPE(_STRUCTNAME) CONC(CONC(DYVE_, _STRUCTNAME), _t);\
-void CONC(CONC(ECS_COMPONENT_, _STRUCTNAME), _Destroy)(CONC(CONC(DYVE_, _STRUCTNAME), _t) *component)\
-{\
-    DYVE_Free(*(component));\
-}\
-void CONC(CONC(ECS_COMPONENT_, _STRUCTNAME), _Add)(ECS_Container *ECS_COMPONENT_LOCAL_ecs)\
-{\
-    int ECS_COMPONENT_LOCAL_exists = 0;\
-    for (uint32_t i = 0; i < ECS_COMPONENT_LOCAL_ecs->components.size; i++)\
-    {\
-        if (ECS_COMPONENT_LOCAL_ecs->components.data[i].id == _ID)\
-            ECS_COMPONENT_LOCAL_exists = 1;\
-    }\
-\
-    if (ECS_COMPONENT_LOCAL_exists == 0)\
-    {\
-        CONC(CONC(DYVE_, _STRUCTNAME), _t) *ECS_COMPONENT_LOCAL_arr = (CONC(CONC(DYVE_, _STRUCTNAME), _t)*)malloc(sizeof(CONC(CONC(DYVE_, _STRUCTNAME), _t)));\
-        DYVE_Init(*ECS_COMPONENT_LOCAL_arr, ECS_ENTITYSTARTCOUNT);\
-        \
-        ECS_ComponentContainer container;\
-\
-        container.components = ECS_COMPONENT_LOCAL_arr;\
-        container.destroy = &CONC(CONC(ECS_COMPONENT_, _STRUCTNAME), _Destroy);\
-        container.id = _ID;\
-\
-        DYVE_Push(ECS_COMPONENT_LOCAL_ecs->components, container);\
-    }\
-    else\
-    {\
-        ECS_Log("Double component definition\n");\
-    }\
-}\
-
-
-
-
-
-
-
-
-// Every component needs to be given an ID
-// in this struct, which systems will use
-// to identify components
-typedef enum
-{
-    Metaproperties_id               = 1,
-    Transform_id                    = 2
-} ECS_COMPONENT_IDS;
-
-typedef struct Metaproperties
-{
-    const char *name;
-} Metaproperties;
-
 typedef struct Transform
 {
     Vec3 position, rotation, scale;
 } Transform;
 
-ECS_COMPONENT_INITIALIZE(Metaproperties, Metaproperties_id)
-ECS_COMPONENT_INITIALIZE(Transform, Transform_id)
+
+typedef struct DYVE_transform_t { Transform *data; uint32_t length, buffSize;} DYVE_transform_t;void DYVE_Transform_init(DYVE_transform_t *arr, uint32_t len){ arr->buffSize = len; arr->data = (Transform*)malloc(sizeof(Transform) * len); arr->length = 0;}void DYVE_Transform_push(DYVE_transform_t *arr, Transform val){ if (arr->length >= arr->buffSize) { uint32_t newLen = arr->buffSize + 16; Transform *newData = (Transform*)realloc(arr->data, sizeof(Transform) * newLen); if (newData == __null) { printf("DVVE: Failed to allocate memory\n"); exit(1); } arr->buffSize = newLen; arr->data = newData; } arr->data[arr->length++] = val;};Transform DYVE_Transform_pop(DYVE_transform_t *arr, uint32_t index){ if (index >= arr->length || index < 0) { printf("DYVE: Index out of range"); exit(1); } for (uint32_t i = index; i < arr->length-2; i++) { arr->data[i] = arr->data[i+1]; } arr->length--; if ((arr->buffSize - arr->length) > 16) { uint32_t newLen = arr->buffSize - 16; Transform *newData = (Transform*)realloc(arr->data, sizeof(Transform) * newLen); if (newData == __null) { printf("DVVE: Failed to allocate memory\n"); exit(1); } arr->data = newData; arr->buffSize = newLen; }}void DYVE_Transform_free(DYVE_transform_t *arr){ free(arr->data);}
 
 #endif

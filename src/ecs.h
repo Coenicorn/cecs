@@ -23,7 +23,7 @@ typedef uint64_t ECS_Entity_t;
 typedef uint32_t ECS_ComponentID_t;
 typedef uint32_t ECS_SystemID_t;
 
-typedef DYVE_NEWTYPE(ECS_Entity_t) DYVE_ECS_EntityArr_t;
+DYVE_NEWTYPE(ECS_Entity_t, DYVE_ECS_EntityArr_t)
 
 
 
@@ -37,7 +37,7 @@ typedef struct ECS_ComponentContainer
     void (*destroy)(void *components);
 } ECS_ComponentContainer;
 
-typedef DYVE_NEWTYPE(ECS_ComponentContainer) DYVE_ECS_ComponentContainer_t;
+DYVE_NEWTYPE(ECS_ComponentContainer, DYVE_ECS_ComponentContainer_t)
 
 
 
@@ -55,7 +55,7 @@ typedef struct ECS_System
     void *persistentData;
 } ECS_System;
 
-typedef DYVE_NEWTYPE(ECS_System) DYVE_ECS_SystemArr_t;
+DYVE_NEWTYPE(ECS_System, DYVE_ECS_SystemArr_t)
 
 
 
